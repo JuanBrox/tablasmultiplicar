@@ -1,5 +1,8 @@
 import random
+from pathlib import Path
 import streamlit as st
+
+AUDIOS = Path(__file__).parent / "audios"
 
 st.set_page_config(page_title="Las tablas mágicas", page_icon="🦄", layout="centered")
 
@@ -23,6 +26,10 @@ tab1, tab2, tab3 = st.tabs(["📖 Aprender", "🎯 Practicar", "🧩 Completa"])
 # ---------- APRENDER ----------
 with tab1:
     t = st.select_slider("Elige la tabla", options=list(range(1, 11)), value=5, key="aprender")
+    audio = AUDIOS / f"tabla_del_{t:02d}.mp3"
+    if audio.exists():
+        st.markdown("🎧 **Escucha la tabla**")
+        st.audio(str(audio), format="audio/mp3")
     for i in range(1, 11):
         st.markdown(f'<div class="fila">{t} × {i} = <b>{t*i}</b></div>', unsafe_allow_html=True)
     if t == 1:
