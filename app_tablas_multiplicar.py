@@ -1,8 +1,21 @@
 import random
+import re
 from pathlib import Path
 import streamlit as st
 
-AUDIOS = Path(__file__).parent / "audios"
+BASES = [Path(__file__).resolve().parent, Path.cwd()]
+
+
+@st.cache_data
+def buscar_audios():
+    """Busca todos los mp3 del repositorio y los asocia a su tabla por el nombre."""
+    encontrados = {}
+    for base in BASES:
+        for f in sorted(base.rglob("*.mp3")):
+            m = re.search(r"(\d+)", f.stem)
+            if m and 1 <= int(m.group(1)) <= 10:
+                encontrados.setdefault(int(m.group(1)), f)
+    return encontrados
 
 st.set_page_config(page_title="Las tablas mágicas", page_icon="🦄", layout="centered")
 
@@ -26,10 +39,15 @@ tab1, tab2, tab3 = st.tabs(["📖 Aprender", "🎯 Practicar", "🧩 Completa"])
 # ---------- APRENDER ----------
 with tab1:
     t = st.select_slider("Elige la tabla", options=list(range(1, 11)), value=5, key="aprender")
-    audio = AUDIOS / f"tabla_del_{t:02d}.mp3"
-    if audio.exists():
+    audios = buscar_audios()
+    if t in audios:
         st.markdown("🎧 **Escucha la tabla**")
-        st.audio(str(audio), format="audio/mp3")
+        st.audio(audios[t].read_bytes(), format="audio/mp3")
+    else:
+        st.warning(
+            f"No encuentro el audio de la tabla del {t}. "
+            f"Busco archivos .mp3 en: {BASES[0]} — encontrados: {len(audios)}"
+        )
     for i in range(1, 11):
         st.markdown(f'<div class="fila">{t} × {i} = <b>{t*i}</b></div>', unsafe_allow_html=True)
     if t == 1:
